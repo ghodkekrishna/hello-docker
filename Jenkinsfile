@@ -4,6 +4,7 @@ pipeline {
     environment {
         SLACK_WEBHOOK = credentials('SLACK_WEBHOOK')
         IMAGE_NAME = 'krishnaghodke90/hello-docker'
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-creds')
     }
 
     stages {
@@ -24,17 +25,17 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-creds') {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
                         dockerImage.push('latest')
                     }
                 }
             }
         }
 
-        stage('Run Container') {
+        stage('Deploy Application') {
             steps {
-                sh "docker rm -f myapp || true"
-                sh "docker run -d --name myapp -p 8081:80 ${IMAGE_NAME}:latest"
+                sh 'docker-compose down || true'
+                sh 'docker-compose up -d'
             }
         }
     }
