@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     git \
-    mysql-client \
+    default-mysql-client \
     && docker-php-ext-install pdo_mysql
 
 # Enable Apache mod_rewrite
