@@ -2,7 +2,7 @@
 $host = 'localhost';
 $db   = 'login_app';
 $user = 'root';
-$pass = '';
+$pass = 'secret';
 
 $conn = new mysqli($host, $user, $pass, $db);
 
