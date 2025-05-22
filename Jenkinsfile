@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SLACK_WEBHOOK = credentials('SLACK_WEBHOOK')
-        IMAGE_NAME = 'ghodkekrishna/hello-docker'
+        IMAGE_NAME = 'krishnaghodke90/hello-docker'
     }
 
     stages {
