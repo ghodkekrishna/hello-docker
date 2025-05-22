@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-       SLACK_WEBHOOK = credentials('SLACK_WEBHOOK')
+        SLACK_WEBHOOK = credentials('SLACK_WEBHOOK')
+        IMAGE_NAME = 'ghodkekrishna/hello-docker'
     }
-    
+
     stages {
         stage('Clone') {
             steps {
@@ -15,7 +16,17 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("myapp:latest")
+                    dockerImage = docker.build("${IMAGE_NAME}:latest")
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-creds') {
+                        dockerImage.push('latest')
+                    }
                 }
             }
         }
@@ -23,23 +34,23 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh "docker rm -f myapp || true"
-                sh "docker run -d --name myapp -p 8081:80 myapp:latest"
+                sh "docker run -d --name myapp -p 8081:80 ${IMAGE_NAME}:latest"
             }
         }
     }
-    
+
     post {
         success {
             sh """
-              curl -X POST -H 'Content-type: application/json' \
-              --data '{"text":"✅ *Build SUCCESS* for ${env.JOB_NAME} #${env.BUILD_NUMBER}"}' \
+              curl -X POST -H 'Content-type: application/json' \\
+              --data '{"text":"✅ *Build SUCCESS* for ${env.JOB_NAME} #${env.BUILD_NUMBER}"}' \\
               ${SLACK_WEBHOOK}
             """
         }
         failure {
             sh """
-              curl -X POST -H 'Content-type: application/json' \
-              --data '{"text":"❌ *Build FAILED* for ${env.JOB_NAME} #${env.BUILD_NUMBER}"}' \
+              curl -X POST -H 'Content-type: application/json' \\
+              --data '{"text":"❌ *Build FAILED* for ${env.JOB_NAME} #${env.BUILD_NUMBER}"}' \\
               ${SLACK_WEBHOOK}
             """
         }
