@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        SLACK_WEBHOOK = credentials('slack-webhook')  // Match the ID you created
+        SLACK_WEBHOOK = 'https://hooks.slack.com/services/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'
     }
-
+    
     stages {
         stage('Clone') {
             steps {
@@ -30,10 +30,18 @@ pipeline {
     
     post {
         success {
-            slackSend (webhookUrl: "${SLACK_WEBHOOK}", message: "✅ *Build SUCCESS* for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+            sh """
+              curl -X POST -H 'Content-type: application/json' \
+              --data '{"text":"✅ *Build SUCCESS* for ${env.JOB_NAME} #${env.BUILD_NUMBER}"}' \
+              ${SLACK_WEBHOOK}
+            """
         }
         failure {
-            slackSend (webhookUrl: "${SLACK_WEBHOOK}", message: "❌ *Build FAILED* for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+            sh """
+              curl -X POST -H 'Content-type: application/json' \
+              --data '{"text":"❌ *Build FAILED* for ${env.JOB_NAME} #${env.BUILD_NUMBER}"}' \
+              ${SLACK_WEBHOOK}
+            """
         }
     }
 }
