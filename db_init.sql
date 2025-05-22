@@ -4,4 +4,4 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL
 );
 
-INSERT INTO users (username, password) VALUES ('admin', 'password_hash');
+INSERT INTO users (username, password) VALUES ('admin@gmail.com', 'admin');

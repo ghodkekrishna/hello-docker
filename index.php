@@ -2,31 +2,34 @@
 session_start();
 require 'db.php';
 
+$error = '';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $stmt->store_result();
+    try {
+        $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE email = :email");
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
 
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($id, $name, $hashed_password);
-        $stmt->fetch();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (password_verify($password, $hashed_password)) {
-            $_SESSION['user_id'] = $id;
-            $_SESSION['user_name'] = $name;
-            header("Location: dashboard.php");
-            exit();
+        if ($user) {
+            if (password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                $error = "Invalid password.";
+            }
         } else {
-            $error = "Invalid password.";
+            $error = "User not found.";
         }
-    } else {
-        $error = "User not found.";
+    } catch (PDOException $e) {
+        $error = "Database error: " . $e->getMessage();
     }
-    $stmt->close();
 }
 ?>
 
