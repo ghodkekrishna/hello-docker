@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     default-mysql-client \
-    && docker-php-ext-install pdo_mysql
+    && docker-php-ext-install pdo_mysql mysqli \
+    && docker-php-ext-enable mysqli
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
