@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         SLACK_WEBHOOK = credentials('SLACK_WEBHOOK')
-        BACKEND_IMAGE = 'krishnaghodke90/hello-docker-backend'
-        FRONTEND_IMAGE = 'krishnaghodke90/hello-docker-frontend'
+        IMAGE_NAME = 'krishnaghodke90/hello-docker'
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-creds')
     }
 
@@ -15,35 +14,26 @@ pipeline {
             }
         }
 
-        stage('Build Backend Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    backendImage = docker.build("${BACKEND_IMAGE}:latest", ".")
+                    dockerImage = docker.build("${IMAGE_NAME}:latest")
                 }
             }
         }
 
-        stage('Build Frontend Image') {
-            steps {
-                script {
-                    frontendImage = docker.build("${FRONTEND_IMAGE}:latest", "./frontend")
-                }
-            }
-        }
-
-        stage('Push Images') {
+        stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                        sh "docker push ${BACKEND_IMAGE}:latest"
-                        sh "docker push ${FRONTEND_IMAGE}:latest"
+                        sh "docker push krishnaghodke90/hello-docker:latest"
                     }
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy Application') {
             steps {
                 sh 'docker compose down || true'
                 sh 'docker compose up -d'
