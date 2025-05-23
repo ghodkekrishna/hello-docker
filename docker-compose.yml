@@ -15,6 +15,14 @@ services:
       - MYSQL_PASSWORD=secret
       - MYSQL_DATABASE=login_app
 
+  angular:
+    build:
+      context: ./login-app
+    ports:
+      - "4200:80"    # Expose Angular on http://localhost:4200
+    depends_on:
+      - web
+
   db:
     image: mysql:5.7
     restart: always
@@ -23,6 +31,3 @@ services:
       MYSQL_DATABASE: login_app
     volumes:
       - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
-
-volumes:
-  db_data:
