@@ -24,5 +24,12 @@ services:
     volumes:
       - ./db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"  # Angular app served by nginx on port 4200
+
 volumes:
   db_data:
