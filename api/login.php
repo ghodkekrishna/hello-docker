@@ -1,26 +1,35 @@
 <?php
 session_start();
-header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: *");
 
-// Allow specific headers and methods
+// Always send content type
+header('Content-Type: application/json');
+
+// Allow CORS
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
-require 'db.php'; // Adjust path if needed
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit;
+// ✅ Handle CORS preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
 }
 
-$data = json_decode(file_get_contents('php://input'), true);
+// ✅ Reject non-POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+    exit();
+}
 
+require 'db.php'; // Adjust path if needed
+
+// ✅ Validate input
+$data = json_decode(file_get_contents('php://input'), true);
 if (!isset($data['email']) || !isset($data['password'])) {
     http_response_code(400);
-    echo json_encode(['error' => 'Email and password required']);
-    exit;
+    echo json_encode(['success' => false, 'error' => 'Email and password required']);
+    exit();
 }
 
 $email = $data['email'];
@@ -31,16 +40,24 @@ try {
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user && $password === $user['password']) {  // Plain text password check, replace with password_verify if hashed
+    // ✅ Compare plaintext passwords (not recommended for production)
+    if ($user && $password === $user['password']) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['username'];
-        
-        echo json_encode(['success' => true, 'message' => 'Login successful', 'user' => ['id' => $user['id'], 'name' => $user['username']]]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Login successful',
+            'user' => [
+                'id' => $user['id'],
+                'name' => $user['username']
+            ]
+        ]);
     } else {
         http_response_code(401);
-        echo json_encode(['success' => false, 'error' => 'Invalid credentials']);
+        echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
     }
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Server error']);
+    echo json_encode(['success' => false, 'error' => 'Server error']);
 }
