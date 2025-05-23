@@ -1,9 +1,11 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');  // adjust for security in prod
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
+header("Access-Control-Allow-Origin: *");
+
+// Allow specific headers and methods
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
 require 'db.php'; // Adjust path if needed
 
